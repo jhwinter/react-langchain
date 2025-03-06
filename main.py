@@ -63,7 +63,9 @@ if __name__ == "__main__":
         tool_names=", ".join([t.name for t in tools]),
     )
 
-    llm = ChatGoogleGenerativeAI(temperature=0, model=os.environ["MODEL_NAME"]).bind(stop=["\nObservation", "Observation"])
+    llm = ChatGoogleGenerativeAI(temperature=0, model=os.environ["MODEL_NAME"]).bind(
+        stop=["\nObservation", "Observation"]
+    )
     intermediate_steps = []
     agent = (
         {
