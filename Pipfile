@@ -5,12 +5,11 @@ name = "pypi"
 
 [packages]
 langchain = "*"
-openai = "*"
 black = "*"
 python-dotenv = "*"
-langchain-openai = "*"
+langchain-google-genai = "*"
 
 [dev-packages]
 
 [requires]
-python_version = "3.10"
+python_version = "3.13"
