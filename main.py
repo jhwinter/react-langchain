@@ -1,5 +1,6 @@
 import os
 from typing import Union, List
+import re
 from dotenv import load_dotenv
 from langchain.agents import tool
 from langchain.agents.format_scratchpad import format_log_to_str
@@ -9,6 +10,8 @@ from langchain.prompts import PromptTemplate
 from langchain.schema import AgentAction, AgentFinish
 from langchain.tools import Tool, tool
 from langchain.tools.render import render_text_description
+
+from callbacks import AgentCallbackHandler
 
 
 load_dotenv()
@@ -29,7 +32,7 @@ def find_tool_by_name(tools: List[Tool], tool_name: str) -> Tool:
     for tool in tools:
         if tool.name == tool_name:
             return tool
-    raise ValueError(f"Tool wtih name {tool_name} not found")
+    raise ValueError(f"Tool with name {tool_name} not found")
 
 
 if __name__ == "__main__":
@@ -63,9 +66,7 @@ if __name__ == "__main__":
         tool_names=", ".join([t.name for t in tools]),
     )
 
-    llm = ChatGoogleGenerativeAI(temperature=0, model=os.environ["MODEL_NAME"]).bind(
-        stop=["\nObservation", "Observation"]
-    )
+    llm = ChatGoogleGenerativeAI(temperature=0, model=os.environ["MODEL_NAME"], callbacks=[AgentCallbackHandler()]).bind(stop=["\nObservation", "Observation"])
     intermediate_steps = []
     agent = (
         {
@@ -77,30 +78,34 @@ if __name__ == "__main__":
         | ReActSingleInputOutputParser()
     )
 
-    agent_step: Union[AgentAction, AgentFinish] = agent.invoke(
-        {
-            "input": "What is the length of the word: DOG",
-            "agent_scratchpad": intermediate_steps,
-        }
-    )
-    print(agent_step)
+    agent_step = ""
+    while not isinstance(agent_step, AgentFinish):
+      agent_step: Union[AgentAction, AgentFinish] = agent.invoke(
+          {
+              "input": "What is the length of the word: DOG",
+              "agent_scratchpad": intermediate_steps,
+          }
+      )
+      print(agent_step)
 
-    if isinstance(agent_step, AgentAction):
-        tool_name = agent_step.tool
-        tool_to_use = find_tool_by_name(tools, tool_name)
-        tool_input = agent_step.tool_input
+      if isinstance(agent_step, AgentAction):
+          tool_name = agent_step.tool
+          tool_to_use = find_tool_by_name(tools, tool_name)
+          tool_input = agent_step.tool_input
 
-        observation = tool_to_use.func(str(tool_input))
-        print(f"{observation=}")
-        intermediate_steps.append((agent_step, str(observation)))
+          observation = tool_to_use.func(str(tool_input))
+          print(f"{observation=}")
+          intermediate_steps.append((agent_step, str(observation)))
 
-    agent_step: Union[AgentAction, AgentFinish] = agent.invoke(
-        {
-            "input": "What is the length of the word: DOG",
-            "agent_scratchpad": intermediate_steps,
-        }
-    )
-    print(agent_step)
+    # keeping this here because this while loop is unending sometimes due to agents often being non-deterministic
+    # agent_step: Union[AgentAction, AgentFinish] = agent.invoke(
+    #     {
+    #         "input": "What is the length of the word: DOG",
+    #         "agent_scratchpad": intermediate_steps,
+    #     }
+    # )
+    # print(agent_step)
+
     if isinstance(agent_step, AgentFinish):
         print("### AgentFinish ###")
         print(agent_step.return_values)
