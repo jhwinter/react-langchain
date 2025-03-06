@@ -23,6 +23,7 @@ def get_text_length(text: str) -> int:
 
     return len(text)
 
+
 def find_tool_by_name(tools: List[Tool], tool_name: str) -> Tool:
     for tool in tools:
         if tool.name == tool_name:
@@ -61,14 +62,14 @@ if __name__ == "__main__":
         tool_names=", ".join([t.name for t in tools]),
     )
 
-    llm = ChatGoogleGenerativeAI(temperature=0, model=os.environ["MODEL_NAME"])
+    llm = ChatGoogleGenerativeAI(temperature=0, model=os.environ["MODEL_NAME"]).bind(stop=["\nObservation", "Observation"])
     intermediate_steps = []
     agent = (
         {
             "input": lambda x: x["input"],
         }
         | prompt
-        | llm.invoke(stop=["\nObservation", "Observation"])
+        | llm
         | ReActSingleInputOutputParser()
     )
 

@@ -8,6 +8,8 @@ langchain = "*"
 black = "*"
 python-dotenv = "*"
 langchain-google-genai = "*"
+grpcio = "==1.67.1"
+grpcio-status = "==1.67.1"
 
 [dev-packages]
 
