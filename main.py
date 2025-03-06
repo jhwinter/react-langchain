@@ -10,7 +10,7 @@ from langchain.tools.render import render_text_description
 
 
 load_dotenv()
-
+MODEL_NAME = "gemini-1.5-flash"
 
 @tool
 def get_text_length(text: str) -> int:
@@ -60,5 +60,5 @@ if __name__ == "__main__":
         tool_names=", ".join([t.name for t in tools]),
     )
 
-    llm = ChatGoogleGenerativeAI(temperature=0, model=os.environ["MODEL_NAME"])
+    llm = ChatGoogleGenerativeAI(temperature=0, model=MODEL_NAME)
 
